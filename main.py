@@ -1,12 +1,18 @@
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 import gym
 import argparse
 import os
-import d4rl
 
-import utils
 import TD3_BC
+import d4rl
+from d4rl.dataset import normalize_data, QLearningDataset
+
+
+def repeat_iterator(iterable):
+    while True:
+        yield from iterable
 
 
 # Runs policy for X episodes and returns D4RL score
@@ -101,16 +107,20 @@ if __name__ == "__main__":
         policy_file = file_name if args.load_model == "default" else args.load_model
         policy.load(f"./models/{policy_file}")
 
-    replay_buffer = utils.ReplayBuffer(state_dim, action_dim)
-    replay_buffer.convert_D4RL(d4rl.qlearning_dataset(env))
+    data_dict = env.load_data(env.spec.max_episode_steps)
+
     if args.normalize:
-        mean,std = replay_buffer.normalize_states() 
+        mean, std = normalize_data(data_dict)
     else:
-        mean,std = 0,1
+        mean, std = 0, 1
+
+    loader = repeat_iterator(DataLoader(QLearningDataset(data_dict),
+                                        batch_size=args.batch_size,
+                                        shuffle=True))
     
     evaluations = []
     for t in range(int(args.max_timesteps)):
-        policy.train(replay_buffer, args.batch_size)
+        policy.train(*next(loader))
         # Evaluate episode
         if (t + 1) % args.eval_freq == 0:
             print(f"Time steps: {t+1}")
