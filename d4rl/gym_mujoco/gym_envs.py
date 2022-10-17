@@ -3,7 +3,7 @@ from gym.envs.mujoco.half_cheetah import HalfCheetahEnv
 from gym.envs.mujoco.hopper import HopperEnv
 from gym.envs.mujoco.walker2d import Walker2dEnv
 
-from offline.d4rl.offline_environment import OfflineEnv
+from d4rl.offline_environment import OfflineEnv
 
 
 class OfflineAntEnv(OfflineEnv, AntEnv):

@@ -8,11 +8,10 @@ from numpy.typing import NDArray
 import requests
 from tqdm import tqdm
 
-from offline.d4rl.infos import DATASET_URLS, REF_MAX_SCORE, REF_MIN_SCORE
-from offline.utils.misc import ROOT
+from d4rl.infos import DATASET_URLS, REF_MAX_SCORE, REF_MIN_SCORE
 
 
-DATA_ROOT = ROOT / 'data'
+DATA_ROOT = Path('/home/wisrl/offline/data')
 
 
 def compute_timeouts(terminals: NDArray[np.bool_],

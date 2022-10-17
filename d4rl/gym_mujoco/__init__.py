@@ -7,7 +7,7 @@ DATASETS = ['random', 'medium', 'expert',
 
 
 def register_gym_mujoco_envs():
-    base_module = 'offline.d4rl.gym_mujoco.gym_envs'
+    base_module = 'd4rl.gym_mujoco.gym_envs'
     for agent in AGENTS:
         for dataset in DATASETS:
             env_name = f'{agent.lower()}-{dataset}-v2'

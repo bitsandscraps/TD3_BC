@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
+from tqdm import trange
 import gym
 import argparse
 import os
@@ -19,11 +20,10 @@ def repeat_iterator(iterable):
 # A fixed seed is used for the eval environment
 def eval_policy(policy, env_name, seed, mean, std, seed_offset=100, eval_episodes=10):
     eval_env = gym.make(env_name)
-    eval_env.seed(seed + seed_offset)
 
     avg_reward = 0.
-    for _ in range(eval_episodes):
-        (state, _), term, trunc = eval_env.reset(), False, False
+    for index in range(eval_episodes):
+        (state, _), term, trunc = eval_env.reset(seed=seed + seed_offset + index), False, False
         while not (term or trunc):
             state = (np.array(state).reshape(1,-1) - mean)/std
             action = policy.select_action(state)
@@ -31,7 +31,7 @@ def eval_policy(policy, env_name, seed, mean, std, seed_offset=100, eval_episode
             avg_reward += reward
 
     avg_reward /= eval_episodes
-    d4rl_score = eval_env.get_normalized_score(avg_reward) * 100
+    d4rl_score = eval_env.get_normalized_score(avg_reward)
 
     print("---------------------------------------")
     print(f"Evaluation over {eval_episodes} episodes: {avg_reward:.3f}, D4RL score: {d4rl_score:.3f}")
@@ -77,7 +77,6 @@ if __name__ == "__main__":
     env = gym.make(args.env)
 
     # Set seeds
-    env.seed(args.seed)
     env.action_space.seed(args.seed)
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
@@ -116,10 +115,11 @@ if __name__ == "__main__":
 
     loader = repeat_iterator(DataLoader(QLearningDataset(data_dict),
                                         batch_size=args.batch_size,
-                                        shuffle=True))
+                                        shuffle=True,
+                                        pin_memory=True))
     
     evaluations = []
-    for t in range(int(args.max_timesteps)):
+    for t in trange(int(args.max_timesteps)):
         policy.train(*next(loader))
         # Evaluate episode
         if (t + 1) % args.eval_freq == 0:

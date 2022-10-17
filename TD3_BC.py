@@ -51,7 +51,7 @@ class Critic(nn.Module):
         q2 = F.relu(self.l4(sa))
         q2 = F.relu(self.l5(q2))
         q2 = self.l6(q2)
-        return q1, q2
+        return q1.squeeze(-1), q2.squeeze(-1)
 
 
     def Q1(self, state, action):
@@ -60,7 +60,7 @@ class Critic(nn.Module):
         q1 = F.relu(self.l1(sa))
         q1 = F.relu(self.l2(q1))
         q1 = self.l3(q1)
-        return q1
+        return q1.squeeze(-1)
 
 
 class TD3_BC(object):
@@ -103,6 +103,11 @@ class TD3_BC(object):
 
 
     def train(self, state, action, reward, done, next_state):
+        state = state.to(device=device)
+        action = action.to(device=device)
+        reward = reward.to(device=device)
+        done = done.to(device=device)
+        next_state = next_state.to(device=device)
         self.total_it += 1
 
         with torch.no_grad():
